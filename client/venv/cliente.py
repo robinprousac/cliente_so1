@@ -21,6 +21,14 @@ progreso = 0
 
 bandera = 0
 
+bandera_hilo = 0
+
+tiempo_inicio = ""
+tiempo_fin = ""
+
+my_objects = []
+
+
 logging.basicConfig(level=logging.DEBUG, format='[%(levelname)s] (%(threadName)-s) %(message)s')
 
 
@@ -78,25 +86,67 @@ def progreso():
     global total_progress
 
     progress['maximum'] = 100
-    cont = 0
-    print(total_progress)
-    print(total_solicitudes)
+    print("entrando a barra progresoo")
 
     while 1==1:
+        #time.sleep(0.01)
+        print("total solicitudes es:")
+        print(total_solicitudes)
+        print("total progreso es:")
+        print(total_progress)
+        progreso = ((int(total_solicitudes)-int(total_progress)*100)/int(total_solicitudes))*-1
+        #progreso1 = progreso / int(total_solicitudes)
+        #progreso2 = 100 - progreso1
 
-        #progreso = total_solicitudes-total_progress/total_solicitudes
-        time.sleep(1)
-        progress['value'] = cont
+        print("progreso es:")
+        print(progreso)
+
+        progress['value'] = progreso
         progress.update()
-        cont= cont + 1
+        #cont= cont + 1
         #print(progreso)
 
-        print("aver pues :"+str(total_progress))
+        #print("aver pues :"+str(total_progress))
 
-        if 100 == cont:
+        if 99 == progreso:
             progress['value'] = 0
             progress.update()
-            break
+            progress.stop()
+            progreso = 0
+            return
+
+
+def monitoring():
+
+    global bandera_hilo
+    global solicitudeserror
+    global solicitudesok
+    global total_progress
+    global total_solicitudes
+    global my_objects
+    global progreso
+    global tiempo_fin
+
+    bandera_hilo = 0
+    while 1==1:
+        for obj in my_objects:
+            time.sleep(0.5)
+            print(obj.is_alive())
+            if False == obj.is_alive():
+                txtarea.insert(INSERT, "Total de solicitudes => " + str(total_solicitudes) + "\n")
+                txtarea.insert(INSERT, "Total de solicitudes OK => " + str(solicitudesok) + "\n")
+                tiempo = datetime.datetime.now()
+                tiempo_fin = tiempo.strftime("%I:%M:%S %p")
+                print(tiempo_fin)
+                my_objects.clear()
+
+
+                solicitudeserror = 0
+                solicitudesok = 0
+                total_progress = 0
+                total_progress = 0
+                #progreso = 0
+                return;
 
 
 
@@ -174,6 +224,8 @@ def ejecutar():
     global bandera
     global solicitudeserror
     global solicitudesok
+    global total_solicitudes
+    global my_objects
 
 
 
@@ -205,10 +257,15 @@ def ejecutar():
         c = int(concurrencia)
         solicitud_hilo = int(solicitudes) / c
 
-        my_objects = []
+
 
         hilop = threading.Thread(target=progreso)
         hilop.start()
+
+
+        hilom = threading.Thread(target=monitoring)
+        hilom.start()
+
         #hilop.join()
 
         for i in range(c):
@@ -218,11 +275,7 @@ def ejecutar():
             obj.start()
 
 
-        txtarea.insert(INSERT, "Total de solicitudes => "+ str(total_solicitudes)+"\n")
-        txtarea.insert(INSERT, "Total de solicitudes OK => " + str(solicitudesok) + "\n")
 
-        solicitudeserror = 0
-        solicitudesok = 0
 
 
 
